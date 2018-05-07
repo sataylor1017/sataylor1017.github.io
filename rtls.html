@@ -35,7 +35,110 @@
 										<header>
 											<h2>Real Time Location System</h2>
 										</header>
-										<p>placeholder</p>
+
+										<p>For my capstone project in the ECE program at OSU, me and my capstone group chose to attempt to build a high-accuracy, low-latency 3D RTLS (real-time location system) for VR applications. The idea was to create a scalable RTLS which could be used to track real-world positions and movement for translation into a virtual environment.</p>
+
+										<h3>Background</h3>
+
+										<p>The general idea behind this project is that we, as a group, felt that current VR technology is being underutilized. While yes, it's still in its infancy, the technology has been highly marketed towards individual consumer use. I don't think this makes sense, for a few reasons.</p>
+
+										<p>Firstly, cost. A decent VR setup requires both a VR system and a gaming PC. A VR system on its own costs more than twice that of the average gaming console, and that isn’t even including the cost of the hardware to support it. This firmly puts VR into the realm of technical novelty, when compared to much cheaper, more ironed out forms of gaming technology.</p>
+
+										<p>Secondly, you have to remember that VR is intended to be the ultimate form of immersion in entertainment. Why then, would we constrain this technology to the minimal space of a typical consumer home? Current setups typically don’t allow for more than a few steps of movement from the player. Even VR arcades typically consist of multiple small “stalls” in which players are limited to.</p>
+
+										<span class="image right"><img src="images/rtls/img005.gif" alt="" /></span>
+
+										<p>So how do I think this technology is best applied? VR arcades. Imagine rather than a single person in a small room surrounded by tripods, a large warehouse room where a large group of people can all play within the same virtual world. My vision is something along the lines of laser tag, but within a virtual environment. However, these arcades could contain any type of game imaginable. Imagine taking paintball, escape rooms, bowling, lightsaber duels, you name it, and wrapping them all up into a single building with only the cost of a few thousand dollars worth of electronics. The possibilities are endless.</p>
+
+										<p>So why aren’t people doing this now? Short answer is they’re trying, but it’s complicated. Companies like <a href="http://antilatency.com/">Antilatency</a> are working to add room size scalability to VR systems, and amusement parks like <a href="https://disneyland.disney.go.com/attractions/downtown-disney-district/star-wars-secrets-empire/">Disney</a> are slowly catching on. But this idea is even newer VR itself, and VR arcades are still probably several years out. Moreover, this kind of a business requires both custom hardware and software.</p>
+
+										<p>That brings me back to our project. My capstone group thought that specific subject area would be an interesting and educational area to look into. So for our senior project, we chose to try to create a RTLS system that would function for such an arcade.</p>
+
+										<h3>Overall Design & Concepts</h3>
+
+										<p>Our objective was to create a RTLS system which met the following criteria:</p>
+
+										<div class="table-wrapper">
+											<table class="alt">
+												<tbody>
+													<tr>
+														<td>
+															<u1>
+																<li>Small, unobtrusive trackers whose 3D locations are transferred onto a virtual euclidean coordinate grid</li>
+																<li>Supports a variable number of trackers (target max number of trackers: 16)</li>
+																<li>Tracker locations accurate to 1 cm</li>
+																<li>Max latency of 5 ms</li>
+																<li>Min refresh rate of 30 Hz (~32 ms per refresh)</li>
+															</u1>
+														</td>
+													</tr>
+												</tbody>
+											</table>
+										</div>
+
+										<p>Granted, we knew these were very lofty goals. However, we thought at the very least it would be educational to attempt these goals.</p>
+
+										<p>Originally, we were attempting to do this using RF time-of-flight (ToF) triangulation between the trackers and receivers. Essentially, if a tracker puts out a RF pulse, we can measure the difference in time that this pulse reaches receivers at the corners of the room to triangulate the location of the tracker. The problem with this idea is that the timing resolution of our receivers must be extraordinarily high in order to accurately detect position.</p>
+
+										<div class="box">
+											t  =  d / c  =  (0.01 m) / (3E8 m/s)  =  3.3E-11  =  33 ps
+										</div>
+
+										<p>Very simply as shown above, with simple ToF distancing, we need a 33 picosecond resolution on timing measurements to achieve the accuracy we are looking for. This is essentially equivalent to a 30 GHz clock. In terms of purely meeting this resolution, there are some timers - such as the <a href="http://www.ti.com/lit/ds/symlink/tdc7200.pdf">TDC7200</a>  - which come close enough to be viable. In the end, we decided that RF triangulation was potentially viable long-term, but wasn't necessarily something that we could do over the course of a single semester. I'll probably keep it in mind for future tinkering on my own time though.</p>
+
+										<p>We also considered ultrasound as an alternative, as it functioned in pretty much the same way as RF triangulation, but required less precision (the propagation speed of sound is 100,000x slower than that of an EM pulse). However, this would require us to a simple RF transmitter in the tracker for a isotropic ultrasonic speaker. Because of this, and our lack of knowledge of acoustics and reflectometry, we decided to scrap this idea. We felt that it also was not viable over the course of a semester.</p>
+
+										<span class="image right"><img src="images/rtls/img006.gif" alt="" /></span>
+
+										<p>So in the end, we chose to go for the tried-and-true method of infrared tracking. We chose to go about this with perspective-projection analysis rather than multiple perspective triangulation, as is used in hollywood mocap. Again, this was primarily for budget and schedule reasons. This essentially uses an idea of the image as a projectection sceen between the tracker and a focal point. Based on the known dimensions of the tracker, the distance and skew of the tracker from the camera can be determined. This allows the system to determine the position of a tracker with a single camera.</p>
+
+										<p>Part of the problem with with this design, however, is scalablilty. As additional trackers are added, the number of visible LEDs sees a linear increase. The processing to distinguish multiple trackers results in exponential processing delays with each additional tracker. We chose to approach this by by adding tracker groups. Essentially, trackers take turns activating their LEDs. This results in much faster processing times, at the cost of lower refresh rate. It is to be noted however, that the processing server needs to have enough cores to multiprocess the images in real time. Longer processing time requires more processor cores (or lower refresh rate).</p>
+
+										<div class="box">
+											<p>(number of available cores) ≥ (number of cameras) × (processing time per image) / (refresh rate)</p>
+										</div>
+
+										<p>The system consists of three primary components: camera stations, trackers, and the image processing server. The camera stations and trackers all run in parallel to one another. In order to create tracker groups as discussed above, we had to find some way to sync the trackers and cameras together and prevent them from desynchronyzing over long runtimes. We accomplished this with an RF sync pulse and careful timing analysis. When the device is activated, the primary camera station puts out a 433 MHz RF pulse, which is received by all other camera stations and trackers. When a tracker group (n) receives the pulse, it waits a set time (n*dt) and then activates its LED array for a time (dt) which is larger than the shutter speed of the cameras (set to 5 ms). When the cameras recieve the pulse, they take (n) pictures at a frequency (1/dt).</p>
+
+										<p>The component schematic below was a first-draft blueprint for the system to be built. The only change made from this point was to add 433 MHz RF receivers to the slave camera stations. This was simply because given that the RF sync pulse was already being generated, it made sense to not have to decrease ethernet throughput by using an ethernet camera toggle.</p>
+
+										<span class="image fit"><img src="images/rtls/img004.png" alt="" /></span>
+
+										<h3>Camera Station Design & Fabrication</h3>
+
+										<p>Each camera station was constructed using Raspberry Pi 3.0. These were connected by ethernet back to the image processing server via a switch. A RPi NoIR camera was used to capture images. The primary camera station included a 433 MHz transmitter, and the slave camera stations were equipped with a 433 MHz receiver for the sync pulse. Additionally, to simplify the processing required, a visible light filter was placed over the camera aperature. All of this was built into a simple 3D printed case, which could be affixed either to a wall, or a specialized dynamic mounting bracket. The unit is wall powered (120 VAC).</p>
+
+										<div class="box alt">
+											<div class="row 50% uniform">
+												<div class="6u"><span class="image fit"><img src="images/rtls/img007.png" alt="" /><p>Schematic for the camerastations</p></span></div>
+												<div class="6u$"><span class="image fit"><img src="images/rtls/img002.jpg" alt="" /><p>Final camerastation (slave)</p></span></div>
+											</div>
+										</div>
+
+										<p>The camera stations effectively functioned as a specialized IP camera. All programming for the camera stations was completed in Python. These camera stations were designed to simply take pictures to be relayed to the interface server for processing.</p>
+
+										<h3>Tracker Design & Fabrication</h3>
+
+										<p>The trackers were designed to use an ATmega328 MCU. This MCU was powered by a rechargable LI-Ion battery, and was used to control timing and to activate/deactivate a small array of four IR LEDs. The tracking group number of a tracker was controlled by a set of four dipswitches which gave the binary representation of the tracking group. This allows for up to 16 seperate tracking groups. The schematic for the tracker can be seen below.</p>
+
+										<span class="image fit"><img src="images/rtls/img008.png" alt="" /></span>
+
+										<p>The tracker was then also placed within a 3D printed case. This case allows for easy access to tracking group controls, as well as charging of the device. Final tracker design can be seen below. It is to be noted that after these images were taken, diffusers were fixed to the LED ports on the tracker. This allowed the tracker to be seen better when at angles to a camera. The programming for the MCU was first written and tested using an Arduino, and was later transferred to the ATmega328.</p>
+
+										<div class="box alt">
+											<div class="row 50% uniform">
+												<div class="6u"><span class="image fit"><img src="images/rtls/img009.jpg" alt="" /></span></div>
+												<div class="6u$"><span class="image fit"><img src="images/rtls/img010.jpg" alt="" /></span></div>
+											</div>
+										</div>
+
+										<h3>Image Processing Server</h3>
+
+										<p>The image processing server was - for testing purposes - a simple laptop. This laptop was connected to the camera stations through an ethernet switch. </p>
+
+										<p></p>
+
+										<p></p>
 
 									</div>
 								</section>
