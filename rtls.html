@@ -33,7 +33,7 @@
 								<section>
 									<div class="content">
 										<header>
-											<h2>Real Time Location System</h2>
+											<h2>Real Time Location System<br>(Jan 2018 - Jun 2018)</h2>
 										</header>
 
 										<p>For my capstone project in the ECE program at OSU, me and my capstone group chose to attempt to build a high-accuracy, low-latency 3D RTLS (real-time location system) for VR applications. The idea was to create a scalable RTLS which could be used to track real-world positions and movement for translation into a virtual environment.</p>
@@ -46,11 +46,11 @@
 
 										<p>Secondly, you have to remember that VR is intended to be the ultimate form of immersion in entertainment. Why then, would we constrain this technology to the minimal space of a typical consumer home? Current setups typically don’t allow for more than a few steps of movement from the player. Even VR arcades typically consist of multiple small “stalls” in which players are limited to.</p>
 
-										<span class="image right"><img src="images/rtls/img005.gif" alt="" /></span>
-
 										<p>So how do I think this technology is best applied? VR arcades. Imagine rather than a single person in a small room surrounded by tripods, a large warehouse room where a large group of people can all play within the same virtual world. My vision is something along the lines of laser tag, but within a virtual environment. However, these arcades could contain any type of game imaginable. Imagine taking paintball, escape rooms, bowling, lightsaber duels, you name it, and wrapping them all up into a single building with only the cost of a few thousand dollars worth of electronics. The possibilities are endless.</p>
 
 										<p>So why aren’t people doing this now? Short answer is they’re trying, but it’s complicated. Companies like <a href="http://antilatency.com/">Antilatency</a> are working to add room size scalability to VR systems, and amusement parks like <a href="https://disneyland.disney.go.com/attractions/downtown-disney-district/star-wars-secrets-empire/">Disney</a> are slowly catching on. But this idea is even newer VR itself, and VR arcades are still probably several years out. Moreover, this kind of a business requires both custom hardware and software.</p>
+
+										<span class="image fitTall"><img src="images/rtls/img005.gif" alt="" class="imgClass"/></span>
 
 										<p>That brings me back to our project. My capstone group thought that specific subject area would be an interesting and educational area to look into. So for our senior project, we chose to try to create a RTLS system that would function for such an arcade.</p>
 
@@ -88,17 +88,17 @@
 
 										<p>We also considered ultrasound as an alternative, as it functioned in pretty much the same way as RF triangulation, but required less precision (the propagation speed of sound is 100,000x slower than that of an EM pulse). However, this would require us to a simple RF transmitter in the tracker for a isotropic ultrasonic speaker. Because of this, and our lack of knowledge of acoustics and reflectometry, we decided to scrap this idea. We felt that it also was not viable over the course of a semester.</p>
 
-										<span class="image right"><img src="images/rtls/img006.gif" alt="" /></span>
+										<p>So in the end, we chose to go for the tried-and-true method of infrared tracking. We chose to go about this with perspective-projection analysis rather than multiple perspective triangulation, as is used in hollywood mocap. Again, this was primarily for budget and schedule reasons. This essentially uses an idea of the image as a projectection screen between the tracker and a focal point. Based on the known dimensions of the tracker, the distance and skew of the tracker from the camera can be determined. This allows the system to determine the position of a tracker with a single camera.</p>
 
-										<p>So in the end, we chose to go for the tried-and-true method of infrared tracking. We chose to go about this with perspective-projection analysis rather than multiple perspective triangulation, as is used in hollywood mocap. Again, this was primarily for budget and schedule reasons. This essentially uses an idea of the image as a projectection sceen between the tracker and a focal point. Based on the known dimensions of the tracker, the distance and skew of the tracker from the camera can be determined. This allows the system to determine the position of a tracker with a single camera.</p>
+										<span class="image fitTall"><img src="images/rtls/img006.gif" alt="" class="imgClass"/></span>
 
-										<p>Part of the problem with with this design, however, is scalablilty. As additional trackers are added, the number of visible LEDs sees a linear increase. The processing to distinguish multiple trackers results in exponential processing delays with each additional tracker. We chose to approach this by by adding tracker groups. Essentially, trackers take turns activating their LEDs. This results in much faster processing times, at the cost of lower refresh rate. It is to be noted however, that the processing server needs to have enough cores to multiprocess the images in real time. Longer processing time requires more processor cores (or lower refresh rate).</p>
+										<p>Part of the problem with with this design, however, is scalability. As additional trackers are added, the number of visible LEDs sees a linear increase. The processing to distinguish multiple trackers results in exponential processing delays with each additional tracker. We chose to approach this by by adding tracker groups. Essentially, trackers take turns activating their LEDs. This results in much faster processing times, at the cost of lower refresh rate. It is to be noted however, that the processing server needs to have enough cores to multiprocess the images in real time. Longer processing time requires more processor cores (or lower refresh rate).</p>
 
 										<div class="box">
 											<p>(number of available cores) ≥ (number of cameras) × (processing time per image) / (refresh rate)</p>
 										</div>
 
-										<p>The system consists of three primary components: camera stations, trackers, and the image processing server. The camera stations and trackers all run in parallel to one another. In order to create tracker groups as discussed above, we had to find some way to sync the trackers and cameras together and prevent them from desynchronyzing over long runtimes. We accomplished this with an RF sync pulse and careful timing analysis. When the device is activated, the primary camera station puts out a 433 MHz RF pulse, which is received by all other camera stations and trackers. When a tracker group (n) receives the pulse, it waits a set time (n*dt) and then activates its LED array for a time (dt) which is larger than the shutter speed of the cameras (set to 5 ms). When the cameras recieve the pulse, they take (n) pictures at a frequency (1/dt).</p>
+										<p>The system consists of three primary components: camera stations, trackers, and the image processing server. The camera stations and trackers all run in parallel to one another. In order to create tracker groups as discussed above, we had to find some way to sync the trackers and cameras together and prevent them from desynchronizing over long runtimes. We accomplished this with an RF sync pulse and careful timing analysis. When the device is activated, the primary camera station puts out a 433 MHz RF pulse, which is received by all other camera stations and trackers. When a tracker group (n) receives the pulse, it waits a set time (n*dt) and then activates its LED array for a time (dt) which is larger than the shutter speed of the cameras (set to 5 ms). When the cameras receive the pulse, they take (n) pictures at a frequency (1/dt).</p>
 
 										<p>The component schematic below was a first-draft blueprint for the system to be built. The only change made from this point was to add 433 MHz RF receivers to the slave camera stations. This was simply because given that the RF sync pulse was already being generated, it made sense to not have to decrease ethernet throughput by using an ethernet camera toggle.</p>
 
@@ -106,12 +106,12 @@
 
 										<h3>Camera Station Design & Fabrication</h3>
 
-										<p>Each camera station was constructed using Raspberry Pi 3.0. These were connected by ethernet back to the image processing server via a switch. A RPi NoIR camera was used to capture images. The primary camera station included a 433 MHz transmitter, and the slave camera stations were equipped with a 433 MHz receiver for the sync pulse. Additionally, to simplify the processing required, a visible light filter was placed over the camera aperature. All of this was built into a simple 3D printed case, which could be affixed either to a wall, or a specialized dynamic mounting bracket. The unit is wall powered (120 VAC).</p>
+										<p>Each camera station was constructed using Raspberry Pi 3.0. These were connected by ethernet back to the image processing server via a switch. A RPi NoIR camera was used to capture images. The primary camera station included a 433 MHz transmitter, and the slave camera stations were equipped with a 433 MHz receiver for the sync pulse. Additionally, to simplify the processing required, a visible light filter was placed over the camera aperture. All of this was built into a simple 3D printed case, which could be affixed either to a wall, or a specialized dynamic mounting bracket. The unit is wall powered (120 VAC).</p>
 
 										<div class="box alt">
 											<div class="row 50% uniform">
-												<div class="6u"><span class="image fit"><img src="images/rtls/img007.png" alt="" /><p>Schematic for the camerastations</p></span></div>
-												<div class="6u$"><span class="image fit"><img src="images/rtls/img002.jpg" alt="" /><p>Final camerastation (slave)</p></span></div>
+												<div class="6u"><span class="image fit"><img src="images/rtls/img007.png" alt="" /><p class="centerTxt">Schematic for the camera stations</p></span></div>
+												<div class="6u$"><span class="image fit"><img src="images/rtls/img002.jpg" alt="" /><p class="centerTxt">Final camerastation (slave)</p></span></div>
 											</div>
 										</div>
 
@@ -119,7 +119,7 @@
 
 										<h3>Tracker Design & Fabrication</h3>
 
-										<p>The trackers were designed to use an ATmega328 MCU. This MCU was powered by a rechargable LI-Ion battery, and was used to control timing and to activate/deactivate a small array of four IR LEDs. The tracking group number of a tracker was controlled by a set of four dipswitches which gave the binary representation of the tracking group. This allows for up to 16 seperate tracking groups. The schematic for the tracker can be seen below.</p>
+										<p>The trackers were designed to use an ATmega328 MCU. This MCU was powered by a rechargeable LI-Ion battery, and was used to control timing and to activate/deactivate a small array of four IR LEDs. The tracking group number of a tracker was controlled by a set of four dip switches which gave the binary representation of the tracking group. This allows for up to 16 seperate tracking groups. The schematic for the tracker can be seen below.</p>
 
 										<span class="image fit"><img src="images/rtls/img008.png" alt="" /></span>
 
@@ -127,18 +127,36 @@
 
 										<div class="box alt">
 											<div class="row 50% uniform">
-												<div class="6u"><span class="image fit"><img src="images/rtls/img009.jpg" alt="" /></span></div>
-												<div class="6u$"><span class="image fit"><img src="images/rtls/img010.jpg" alt="" /></span></div>
+												<div class="6u"><span class="image fit"><img src="images/rtls/img009.jpg" alt="" /></span><p class="centerTxt">Final tracker internals</p></div>
+												<div class="6u$"><span class="image fit"><img src="images/rtls/img010.jpg" alt="" /></span><p class="centerTxt">Final tracker case (without LED diffusers)</p></div>
 											</div>
 										</div>
 
 										<h3>Image Processing Server</h3>
 
-										<p>The image processing server was - for testing purposes - a simple laptop. This laptop was connected to the camera stations through an ethernet switch. </p>
+										<p>The image processing server was - for testing purposes - a simple laptop. This laptop was connected to the camera stations through an ethernet switch. The processing server was responsible for receiving the image stream from the camera stations and processing them to determine tracker locations.</p>
 
-										<p></p>
+										<p>Image processing was done as follows: first, the image was run through a Canny edge detection algorithm to simplify the image and make parsing easier and faster. Next, a Hough transform algorithm was run on the resultant Hough algorithm. This Hough algorithm was modified to only detect circles, and returned the pixel coordinates of LED centers. Both of these operations were accomplished using the OpenCV python libraries. For a more polished system, a custom Hough transform could be used to determine a more accurate center for the LEDs (perhaps percentage of image, rather than pixel location).</p>
 
-										<p></p>
+										<p>These 2D coordinates (projection screen) were then parsed to determine the distance of the tracker from the camera, the angle of the tracker from the camera, and optionally, the rotation of the tracker in space. These values were run through a custom algorithm to determine the 3D euclidean coordinates of the tracker in space. For demo purposes, the rotation of the tracker was not calculated, and the 3D euclidean coordinate grid.</p>
+
+										<h3>Final Results / Performance</h3>
+
+										<p><strong>Latency:</strong> In the end, we were able to get our total latency to ~6 ms, which is more or less the target value. Given that the system was tested using a low-end laptop as a image processing server, and with TCP communication between the camera stations and the server, it can be said that the system very well meets the planned latency spec.</p>
+
+										<p><strong>Accuracy:</strong> The final accuracy of the system came out to be ~2 inches. This is obviously much higher than was planned, but it is very much a good proof of concept. The accuracy in this type of system comes down to two things: calibration and the Hough algorithm. Firstly, our 3D positioning algorithm relied heavily on the focal length of the camera. The focal length of the camera we used was not given in spec, and we were forced to manually measure it. If given more time, we could have created a calibration routine which determines this automatically, at a much higher accuracy than our measurements. The other source of error was our Hough algorithm. We used the algorithm contained within the OpenCV library, which returns the center pixel of the LEDs. At a low resolution (like the one we were using), this adds a lot of error. A higher resolution would provide a much better accuracy. However, an alternative to this would be to use a Hough transform which produces an absolute coordinate, rather than the pixel center.</p>
+
+										<p><strong>Refresh Rate:</strong> Our refresh rate was lower than planned, at ~60/(2*N) FPS for a 60 FPS camera, where N is the number of tracking groups. This was a result of us pivoting to high scalability / low running costs. Our system trades refresh rate for being highly scalable and functioning on much cheaper, less powerful computers. In the end, this was a design choice, as high scalability is much more desirable in this sort of system than refresh rate. Moreover, refresh rate can be artificially "increased" using interpolation.</p>
+
+										<p>Additionally, the refresh rate of the system can be increased by using a more specialized camera. High shutter speeds result in darker pictures. As a result of the visible light filter, this is not an issue for image processing, allowing us to work with shutter speeds of 5 ms for the demo. However, the reset time of the camera must also be considered. A camera with a low setup/reset time would allow the system to get significantly higher than a 60 FPS baseline.</p>
+
+										<p><strong>Scalability:</strong> The system is highly scalable and customizable, and allows for the tradeoff between latency and refresh rate to be controlled by the user. For example, 16 trackers could be used in their own tracking groups, with a ~6 ms latency and refresh rate of ~2 FPS. On a higher performance computer. 16 trackers could also be handled in a single tracking group at ~60 FPS and a ~1 ms latency. Note that these values are using the low end equipment that was used in the demo. A higher end computer allows for lower base latency, and a higher end camera results in a faster base refresh rate. It should be noted that latency is a square function of number of trackers per tracker group, whereas refresh rate per tracker group is a linear function.</p>
+
+										<p><i>Unfortunately, most of the results for this project (3D coordinate maps from demos, specific test data) were lost when OSU deleted my BuckeyeBox account after I graduated. As such, there are no graphical examples of functional operation of the system.</i></p>
+
+										<h3>Future Projects / Goals</h3>
+
+										<p>All in all, this project was a valid proof of concept. I believe that given more time, this system could provide a very cheap and accessible form of 3D location tracking - for many applications, not just VR. As such, I'm very interested in looking back at this project sometime in the future and hopefully expanding on this idea. Moreover, I am very interested in putting more effort into a RF-based RTLS.</p>
 
 									</div>
 								</section>

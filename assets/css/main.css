@@ -40,6 +40,12 @@
 		-webkit-text-size-adjust: none;
 	}
 
+/* Mod */
+
+.centerTxt {
+    text-align: center;
+	}
+
 /* Box Model */
 
 	*, *:before, *:after {
@@ -2585,10 +2591,24 @@
 			margin: 0 0 2em 0;
 			width: 100%;
 		}
-
 			.image.fit img {
 				width: 100%;
 			}
+
+		.fitTall {
+    		display: block;
+    		margin-left: auto;
+    		margin-right: auto;
+    		width: 100%;
+		}
+
+		.imgClass {
+    		display: block;
+    		margin-left: auto;
+    		margin-right: auto;
+    		width: 50%;
+    		min-width: 350px;
+		}
 
 		.image.main {
 			display: block;
